@@ -96,3 +96,11 @@ describe('favourite blog', () => {
   })
 
 })
+
+describe('most blogs', () => {
+  test('function finds the author with most blogs in the list', () => {
+    const result = listHelper.mostBlogs(blogs)
+    assert.strictEqual(result.author, 'Robert C. Martin')
+    assert.strictEqual(result.blogs, 3)
+  })
+})
