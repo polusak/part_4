@@ -36,11 +36,39 @@ const compareFn = (a, b) => {
   return 0
 }
 
+const compareLikes = (a, b) => {
+  if (a.likes > b.likes) {
+    return -1
+  } else if (a.likes < b.likes) {
+    return 1
+  }
+  return 0
+}
+
+const compareAuthorObjects = (a, b) => {
+  if (a.author > b.author) {
+    return -1
+  } else if (a.author < b.author) {
+    return 1
+  }
+  return 0
+}
+
 const getNewList = (author, blogs, oldlist) => {
   const list = oldlist.concat([
     {
       author: author,
       blogs: blogs
+    }
+  ])
+  return list
+}
+
+const getListWithLikes = (author, likes, oldlist) => {
+  const list = oldlist.concat([
+    {
+      author: author,
+      likes: likes
     }
   ])
   return list
@@ -67,9 +95,29 @@ const mostBlogs = (blogs) => {
   return authorObjectList[0]
 }
 
+const mostLikes = (blogs) => {
+  let authorObjectList = []
+  const authors = blogs.sort(compareAuthorObjects)
+  let likes = 0
+  let lastAuthor = authors[0].author
+  authors.forEach(author => {
+    if (lastAuthor === author.author) {
+      likes = likes + author.likes
+    } else {
+      authorObjectList = getListWithLikes(lastAuthor, likes, authorObjectList)
+      likes = author.likes
+      lastAuthor = author.author
+    }
+  })
+  authorObjectList = getListWithLikes(lastAuthor, likes, authorObjectList)
+  authorObjectList.sort(compareLikes)
+  return authorObjectList[0]
+}
+
 module.exports = {
   dummy,
   totalLikes,
   favouriteBlog,
-  mostBlogs
+  mostBlogs,
+  mostLikes
 }
