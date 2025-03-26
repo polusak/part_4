@@ -112,6 +112,41 @@ test('blog without title or url returns error code 400', async () => {
     .expect(400)
 })
 
+test('blog can be deleted', async () => {
+  const initialResponse = await api.get('/api/blogs')
+  const blogToDelete = initialResponse.body[0]
+  const id = blogToDelete.id
+  await api
+    .delete(`/api/blogs/${id}`)
+    .expect(204)
+  const response = await api.get('/api/blogs')
+  assert.strictEqual(initialResponse.body.length, response.body.length + 1)
+  const contents = response.body.map(r => r.title)
+  assert(!contents.includes(blogToDelete.title))
+})
+
+test('blog can be modified', async () => {
+  const initialResponse = await api.get('/api/blogs')
+  const blogToModify = initialResponse.body[0]
+  const id = blogToModify.id
+  const newBlog = {
+    'title': 'Crocodiles',
+    'author': 'Crocodile',
+    'url': 'www.crocodile.fi',
+    'likes': 100
+  }
+  await api
+    .put(`/api/blogs/${id}`)
+    .send(newBlog)
+    .expect(200)
+
+  const response = await api.get('/api/blogs')
+  assert.strictEqual(response.body.length, initialResponse.body.length)
+  const contents = response.body.map(r => r.title)
+  assert(!contents.includes(blogToModify.title))
+  assert(contents.includes(newBlog.title))
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
