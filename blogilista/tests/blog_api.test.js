@@ -37,9 +37,9 @@ test('blogs can be added to /api/blogs', async () => {
   const initialLength = initialResponse.body.length
 
   const newBlog = {
-    'title': 'Computer Science',
-    'author': 'Linus Torvalds',
-    'url': 'www.blog.fi',
+    'title': 'Crocodiles',
+    'author': 'Crocodile',
+    'url': 'www.crocodile.fi',
     'likes': 100
   }
 
@@ -52,7 +52,7 @@ test('blogs can be added to /api/blogs', async () => {
   const response = await api.get('/api/blogs')
   assert.strictEqual(response.body.length, initialLength + 1)
   const titles = response.body.map(r => r.title)
-  assert(titles.includes('Computer Science'))
+  assert(titles.includes('Crocodiles'))
 })
 
 test('if likes are not provided, zero likes is added', async () => {
@@ -70,6 +70,46 @@ test('if likes are not provided, zero likes is added', async () => {
   const addedBlogs = response.body.filter(blog => blog.title === 'Lions')
   assert.strictEqual(addedBlogs.length, 1)
   assert.strictEqual(addedBlogs[0].likes, 0)
+})
+
+test('blog without title or url returns error code 400', async () => {
+  const blogNoTitle = {
+    'author': 'Tiger',
+    'url': 'www.tiger.fi'
+  }
+  const blogWithEmptyTitle = {
+    'title': '',
+    'author': 'Elephant',
+    'url': 'www.elephantr.fi'
+  }
+  const blogNoUrl = {
+    'title': 'Salmons',
+    'author': 'Salmon'
+  }
+  const blogWithEmptyUrl = {
+    'title': 'Bears',
+    'author': 'Bear',
+    'url': ''
+  }
+  await api
+    .post('/api/blogs')
+    .send(blogNoTitle)
+    .expect(400)
+
+  await api
+    .post('/api/blogs')
+    .send(blogNoUrl)
+    .expect(400)
+
+  await api
+    .post('/api/blogs')
+    .send(blogWithEmptyTitle)
+    .expect(400)
+
+  await api
+    .post('/api/blogs')
+    .send(blogWithEmptyUrl)
+    .expect(400)
 })
 
 after(async () => {
