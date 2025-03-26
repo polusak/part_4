@@ -39,7 +39,8 @@ test('blogs can be added to /api/blogs', async () => {
   const newBlog = {
     'title': 'Computer Science',
     'author': 'Linus Torvalds',
-    'url': 'www.blog.fi'
+    'url': 'www.blog.fi',
+    'likes': 100
   }
 
   await api
@@ -52,6 +53,23 @@ test('blogs can be added to /api/blogs', async () => {
   assert.strictEqual(response.body.length, initialLength + 1)
   const titles = response.body.map(r => r.title)
   assert(titles.includes('Computer Science'))
+})
+
+test('if likes are not provided, zero likes is added', async () => {
+  const newBlog = {
+    'title': 'Lions',
+    'author': 'Lion',
+    'url': 'www.lion.fi'
+  }
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+  const response = await api.get('/api/blogs')
+  const addedBlogs = response.body.filter(blog => blog.title === 'Lions')
+  assert.strictEqual(addedBlogs.length, 1)
+  assert.strictEqual(addedBlogs[0].likes, 0)
 })
 
 after(async () => {
