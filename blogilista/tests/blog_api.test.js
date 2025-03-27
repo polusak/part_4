@@ -152,7 +152,7 @@ const User = require('../models/user')
 
 //...
 
-describe('when there is initially one user at db', () => {
+describe('user creation', async () => {
   beforeEach(async () => {
     await User.deleteMany({})
 
@@ -206,6 +206,63 @@ describe('when there is initially one user at db', () => {
   })
 })
 
+describe('password and username validation', async () => {
+  test('username of length under 3 is not accepted', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const tooShortUsername = {
+      username: 'ml',
+      name: 'Matti Luukkainen',
+      password: 'salainen',
+    }
+    const noUsername = {
+      name: 'Matti Luukkainen',
+      password: 'salainen',
+    }
+    await api
+      .post('/api/users')
+      .send(tooShortUsername)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    await api
+      .post('/api/users')
+      .send(noUsername)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    const usersAtEnd = await helper.usersInDb()
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+
+  })
+  test('password of length under 3 is not accepted', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const tooShortPassword = {
+      username: 'Cat',
+      name: 'Kissa',
+      password: 'sa',
+    }
+    const noPassword = {
+      username: 'Dog',
+      name: 'Koira'
+    }
+    await api
+      .post('/api/users')
+      .send(tooShortPassword)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    await api
+      .post('/api/users')
+      .send(noPassword)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    const usersAtEnd = await helper.usersInDb()
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+})
 
 after(async () => {
   await mongoose.connection.close()
