@@ -33,10 +33,16 @@ blogsRouter.get('/:id', (request, response, next) => {
 
 blogsRouter.post('/', async (request, response, next) => {
   const body = request.body
-
-  const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
-  if (!decodedToken.id) {
-    return response.status(401).json({ error: 'token invalid' })
+  const token = getTokenFrom(request)
+  let decodedToken = ''
+  if (token !== null) {
+    try {
+      decodedToken = jwt.verify(token, process.env.SECRET)
+    } catch (error) {
+      next(error)
+    }
+  } else {
+    return response.status(401).json({ error: 'token missing' })
   }
   const user = await User.findById(decodedToken.id)
 

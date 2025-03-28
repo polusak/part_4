@@ -1,9 +1,8 @@
 POST http://localhost:3001/api/blogs
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNhdHVzZXJuYW1lIiwiaWQiOiI2N2U2ODc2YzYxZDBmNGQyYTU0NDdhOTkiLCJpYXQiOjE3NDMxNjE0MzF9.DlfYXh29w3jiVsGoUgKan5mPaTTPaBMIPb2nvBFrDlw
-  
+
 {
-  "title": "Small cats",
-  "author": "Cat",
-  "url": "www.smallcats.org"
+  "title": "Testblog2",
+  "author": "cat",
+  "url": "www.cats.org"
 }
