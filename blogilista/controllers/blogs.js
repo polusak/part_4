@@ -56,16 +56,55 @@ blogsRouter.post('/', async (request, response, next) => {
   }
 })
 
-blogsRouter.delete('/:id', (request, response, next) => {
-  Blog.findByIdAndDelete(request.params.id)
-    .then(blog => {
-      if (blog) {
-        response.status(204).json(blog)
-      } else {
-        response.status(404).end()
+blogsRouter.delete('/:id', async (request, response, next) => {
+  const token = request.token
+  let decodedToken = ''
+  if (token !== null) {
+    try {
+      decodedToken = jwt.verify(token, process.env.SECRET)
+    } catch (error) {
+      next(error)
+    }
+  } else {
+    const msg = 'Token missing. Only logged in users can delete blogs.'
+    return response.status(401).json({ error: `${msg}` })
+  }
+  let user = ''
+  let creator = ''
+  try {
+    user = await User.findById(decodedToken.id)
+    if (user !== null) {
+      const deletingUserId = user.id
+      try {
+        creator = await Blog.findById(request.params.id)
+        const creatorInDb = await User.findById(creator.user.toString())
+        if (creatorInDb !== null && creator.user !== undefined) {
+          if (deletingUserId === creator.user.toString()) {
+            const deletedBlog = await Blog.findByIdAndDelete(request.params.id)
+            if (deletedBlog) {
+              response.status(204).json(deletedBlog)
+            } else {
+              response.status(404).end()
+            }
+          } else {
+            const errormsg1 = 'If blog has a creator in database,'
+            const errormsg2 =  'only the creator can delete it.'
+            return response.status(401).json({ error: `${errormsg1}${errormsg2}` })
+          }
+        } else {
+          await Blog.findByIdAndDelete(request.params.id)
+          return response.status(204)
+        }
+      } catch (error) {
+        next(error)
       }
-    })
-    .catch(error => next(error))
+    } else {
+      const msg = 'Cannot find user with token provided'
+      return response.status(401).json({ error: `${msg}` })
+    }
+  } catch (error) {
+    next(error)
+  }
 })
 
 blogsRouter.put('/:id', (request, response, next) => {

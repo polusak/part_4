@@ -1,0 +1,9 @@
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImRvZ3VzZXJuYW1lIiwiaWQiOiI2N2U2YTc4MDVkYjgyNTllMjI1OTUwOWIiLCJpYXQiOjE3NDMzMDY5NzV9.s_C4bz2MBJJgbjLgOwJFQxM3i1xnXzksduS8kHWYbBo
+
+{
+  "title": "Testblog2",
+  "author": "cat",
+  "url": "www.cats.org"
+}
