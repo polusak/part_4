@@ -15,6 +15,19 @@ beforeEach(async () => {
 
   blogObject = new Blog(helper.initialBlogs[1])
   await blogObject.save()
+
+  await User.deleteMany({})
+
+  const user = {
+    'username': 'testusername',
+    'name': 'testname',
+    'password': 'testpassword'
+  }
+  await api
+    .post('/api/users')
+    .send(user)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
 })
 
 test('blogs are returned as json', async () => {
@@ -32,9 +45,21 @@ test('blogs are identified with field `id` not `_id`', async () => {
   })
 })
 
-test('blogs can be added to /api/blogs', async () => {
-  const initialResponse = await api.get('/api/blogs')
-  const initialLength = initialResponse.body.length
+test('a logged in user can add a blog to /api/blogs', async () => {
+  const initialBlogs = await helper.blogsInDb()
+  const initialLength = initialBlogs.length
+
+  const loginInfo = {
+    username: 'testusername',
+    password: 'testpassword'
+  }
+  const loggedInUser = await api
+    .post('/api/login')
+    .send(loginInfo)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+  const token = loggedInUser.body.token
 
   const newBlog = {
     'title': 'Crocodiles',
@@ -42,9 +67,9 @@ test('blogs can be added to /api/blogs', async () => {
     'url': 'www.crocodile.fi',
     'likes': 100
   }
-
   await api
     .post('/api/blogs')
+    .set({ Authorization: `Bearer ${token}` })
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
@@ -55,7 +80,19 @@ test('blogs can be added to /api/blogs', async () => {
   assert(titles.includes('Crocodiles'))
 })
 
-test('if likes are not provided, zero likes is added', async () => {
+test('if likes of a blog are not provided, zero likes is added', async () => {
+  const loginInfo = {
+    username: 'testusername',
+    password: 'testpassword'
+  }
+  const loggedInUser = await api
+    .post('/api/login')
+    .send(loginInfo)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+  const token = loggedInUser.body.token
+
   const newBlog = {
     'title': 'Lions',
     'author': 'Lion',
@@ -63,9 +100,11 @@ test('if likes are not provided, zero likes is added', async () => {
   }
   await api
     .post('/api/blogs')
+    .set({ Authorization: `Bearer ${token}` })
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
+
   const response = await api.get('/api/blogs')
   const addedBlogs = response.body.filter(blog => blog.title === 'Lions')
   assert.strictEqual(addedBlogs.length, 1)
@@ -73,6 +112,18 @@ test('if likes are not provided, zero likes is added', async () => {
 })
 
 test('blog without title or url returns error code 400', async () => {
+  const loginInfo = {
+    username: 'testusername',
+    password: 'testpassword'
+  }
+  const loggedInUser = await api
+    .post('/api/login')
+    .send(loginInfo)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+  const token = loggedInUser.body.token
+
   const blogNoTitle = {
     'author': 'Tiger',
     'url': 'www.tiger.fi'
@@ -93,36 +144,70 @@ test('blog without title or url returns error code 400', async () => {
   }
   await api
     .post('/api/blogs')
+    .set({ Authorization: `Bearer ${token}` })
     .send(blogNoTitle)
     .expect(400)
+    .expect('Content-Type', /application\/json/)
 
   await api
     .post('/api/blogs')
-    .send(blogNoUrl)
-    .expect(400)
-
-  await api
-    .post('/api/blogs')
+    .set({ Authorization: `Bearer ${token}` })
     .send(blogWithEmptyTitle)
     .expect(400)
+    .expect('Content-Type', /application\/json/)
 
   await api
     .post('/api/blogs')
+    .set({ Authorization: `Bearer ${token}` })
+    .send(blogNoUrl)
+    .expect(400)
+    .expect('Content-Type', /application\/json/)
+
+  await api
+    .post('/api/blogs')
+    .set({ Authorization: `Bearer ${token}` })
     .send(blogWithEmptyUrl)
     .expect(400)
+    .expect('Content-Type', /application\/json/)
 })
 
-test('blog can be deleted', async () => {
+test('blog with a creator can be deleted by who created it', async () => {
+
+  const loginInfo = {
+    username: 'testusername',
+    password: 'testpassword'
+  }
+  const loggedInUser = await api
+    .post('/api/login')
+    .send(loginInfo)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+  const token = loggedInUser.body.token
+  const newBlog = {
+    'title': 'Crocodiles',
+    'author': 'Crocodile',
+    'url': 'www.crocodile.fi',
+    'likes': 100
+  }
+  const addedBlog = await api
+    .post('/api/blogs')
+    .set({ Authorization: `Bearer ${token}` })
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
   const initialResponse = await api.get('/api/blogs')
-  const blogToDelete = initialResponse.body[0]
-  const id = blogToDelete.id
+
   await api
-    .delete(`/api/blogs/${id}`)
+    .delete(`/api/blogs/${addedBlog.body.id}`)
+    .set({ Authorization: `Bearer ${token}` })
     .expect(204)
+
   const response = await api.get('/api/blogs')
   assert.strictEqual(initialResponse.body.length, response.body.length + 1)
   const contents = response.body.map(r => r.title)
-  assert(!contents.includes(blogToDelete.title))
+  assert(!contents.includes(addedBlog.body.title))
 })
 
 test('blog can be modified', async () => {
@@ -147,14 +232,27 @@ test('blog can be modified', async () => {
   assert(contents.includes(newBlog.title))
 })
 
+test('only a logged in user can create a blog and add it to db', async () => {
+  const newBlog = {
+    'title': 'Crocodiles',
+    'author': 'Crocodile',
+    'url': 'www.crocodile.fi',
+    'likes': 100
+  }
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(401)
+    .expect('Content-Type', /application\/json/)
+
+})
+
 const bcrypt = require('bcrypt')
 const User = require('../models/user')
 
-//...
-
 describe('user creation', async () => {
   beforeEach(async () => {
-    await User.deleteMany({})
+    //await User.deleteMany({})
 
     const passwordHash = await bcrypt.hash('sekret', 10)
     const user = new User({ username: 'root', passwordHash })
@@ -263,6 +361,8 @@ describe('password and username validation', async () => {
     assert.strictEqual(usersAtEnd.length, usersAtStart.length)
   })
 })
+
+
 
 after(async () => {
   await mongoose.connection.close()

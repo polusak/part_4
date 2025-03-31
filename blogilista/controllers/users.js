@@ -9,8 +9,18 @@ usersRouter.get('/', async (request, response,) => {
   response.json(users)
 })
 
+usersRouter.delete('/:id', async (request, response, next) => {
+  try {
+    const deletedBlog = await User.findByIdAndDelete(request.params.id)
+    return response.status(204).json(deletedBlog)
+  } catch (error) {
+    next(error)
+  }
+})
+
 usersRouter.post('/', async (request, response, next) => {
   const { username, name, password } = request.body
+
 
   if (!password) {
     return response.status(400).json({ error: 'Password must be provided' })

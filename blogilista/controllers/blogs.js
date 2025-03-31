@@ -25,6 +25,10 @@ blogsRouter.get('/:id', (request, response, next) => {
 blogsRouter.post('/', async (request, response, next) => {
   const body = request.body
   const user = request.user
+  if (user === null) {
+    const msg = 'Only a logged in user can create blog to db'
+    return response.status(401).json({ 'error': `${msg}` })
+  }
   try {
     const blog = new Blog({
       title: body.title,
