@@ -10,13 +10,11 @@ usersRouter.get('/', async (request, response,) => {
 })
 
 usersRouter.get('/:id', (request, response, next) => {
-  console.log('reqparam ' + request.params.id)
   User
     .findById(request.params.id)
     .populate('blogs', { title: 1, author: 1, url: 1, id: 1 })
     .then(user => {
       if (user) {
-        console.log('user ' + user)
         response.json(user)
       } else {
         response.status(404).end()
