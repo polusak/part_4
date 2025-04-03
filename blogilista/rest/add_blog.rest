@@ -1,9 +1,8 @@
 POST http://localhost:3001/api/blogs
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Imxpb251c2VybmFtZSIsImlkIjoiNjdlOTVmMTNkN2ViYzI3ZGM0YmY1MDUxIiwiaWF0IjoxNzQzMzUyMTU2fQ.Wuye2Jpsff-FfNAEXwE03ZfuTlCEVo5jgSnScPLp8a4
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Imxpb251c2VybmFtZSIsImlkIjoiNjdlZWEyYjZjNzlhOWI0OGQyZDViY2Q4IiwiaWF0IjoxNzQzNjkyNDk2fQ.2js3hDBA5pr992HnbaHrijS3SYd6qxFL9F9SvhTqI5U
 {
-  "title": "Testblog2",
+  "title": "Big Cats -blog",
   "author": "cat",
   "url": "www.cats.org"
 }

@@ -1,5 +1,5 @@
-const bcrypt = require('bcrypt')
 const usersRouter = require('express').Router()
+const bcrypt = require('bcrypt')
 const User = require('../models/user')
 
 usersRouter.get('/', async (request, response,) => {
@@ -7,6 +7,22 @@ usersRouter.get('/', async (request, response,) => {
     .find({})
     .populate('blogs', { url: 1, title: 1, author: 1, id: 1 })
   response.json(users)
+})
+
+usersRouter.get('/:id', (request, response, next) => {
+  console.log('reqparam ' + request.params.id)
+  User
+    .findById(request.params.id)
+    .populate('blogs', { title: 1, author: 1, url: 1, id: 1 })
+    .then(user => {
+      if (user) {
+        console.log('user ' + user)
+        response.json(user)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
 usersRouter.delete('/:id', async (request, response, next) => {
